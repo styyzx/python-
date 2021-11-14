@@ -120,3 +120,29 @@ CREATE TABLE `stock_daily`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
  
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+-- Table structure for stock_daily_find
+-- ----------------------------
+DROP TABLE IF EXISTS `stock_daily_find`;
+CREATE TABLE `stock_daily_find`  (
+  `ts_code` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '股票代码',
+  `trade_date` date NOT NULL COMMENT '交易日期',
+  `open` double NULL DEFAULT NULL COMMENT '开盘价',
+  `high` double NULL DEFAULT NULL COMMENT '最高价',
+  `low` double NULL DEFAULT NULL COMMENT '最低价',
+  `close` double NULL DEFAULT NULL COMMENT '收盘价',
+  `pre_close` double NULL DEFAULT NULL COMMENT '昨日收盘价',
+  `change` double NULL DEFAULT NULL COMMENT '涨跌额',
+  `pct_chg` double NULL DEFAULT NULL COMMENT '涨跌幅',
+  `vol` double NULL DEFAULT NULL COMMENT '成交量 （手）',
+  `amount` double NULL DEFAULT NULL COMMENT '成交额 （千元）',
+  `turnover_rate` double NULL DEFAULT NULL COMMENT '换手率',
+  `volume_ratio` double NULL DEFAULT NULL COMMENT '量比',
+  `vol_925_ratio` double NULL DEFAULT NULL COMMENT '量比2',
+  UNIQUE INDEX `ts_code_date`(`ts_code`, `trade_date`) USING BTREE COMMENT '以股票代码和日期作为主键',
+  INDEX `ts_code`(`ts_code`) USING BTREE,
+  INDEX `trade_date`(`trade_date`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+SET FOREIGN_KEY_CHECKS = 1;
