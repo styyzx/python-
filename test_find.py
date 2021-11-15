@@ -31,22 +31,32 @@ for each in cursor.fetchall():
     data = pro.daily(trade_date=datetime.datetime.strftime(each[0], "%Y%m%d"))
     cursor = db.cursor()
     datalist = np.array(data).tolist()
-    sql = "insert into stock_daily( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
+    #sql = "insert into stock_daily( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
+    sql = "insert into stock_daily_find( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount, vol_925_ratio) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
     print(sql)
     for data in datalist:
         if ( (float(data[5]) - float(data[2])) / float(data[2]) >0.09 ) :
             #print(data)
-            stock_code = data[0][0:5]
-            parket_code = 1 if data[0][7:8]=='SH' else 0
+            stock_code = data[0][0:6]
+            parket_code = 1 if data[0][7:9]=='SH' else 0
             print(parket_code, stock_code)
             info = api.get_security_quotes( (parket_code, stock_code))
-            print(info)
-        # else :
-        #     print(data)
+            print(info[0]['reversed_bytes3'])
+            datalist.append(str(info[0]['reversed_bytes3']))
+            try:
+                # 执行sql语句
+                cursor.execute(sql, datalist)
+                # 提交到数据库执行
+                db.commit()
+            except Exception as e:
+                print(e)
+                # 如果发生错误则回滚
+                db.rollback()
+      
 
 
 
-
+api.disconnect()
 
     # try:
     #     # 执行sql语句
