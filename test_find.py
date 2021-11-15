@@ -19,39 +19,70 @@ if api.connect('119.147.212.81', 7709):
     b_con = 1
 
 db = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456', db='tushare', charset='utf8mb4')
-db1 = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456', db='tushare', charset='utf8mb4')
-cursor = db1.cursor()
+
+# 使用cursor()方法获取操作游标
+cursor = db.cursor()
+sql = "delete from stock_daily_find"
+try:
+    # 执行sql语句
+    cursor.execute(sql)
+    # 提交到数据库执行
+    db.commit()
+except Exception as e:
+    print(e)
+    # 如果发生错误则回滚
+    db.rollback()
+# 关闭游标
+cursor.close()
+
+
+# 查询当前所有正常上市交易的股票列表
+data = pro.stock_basic(exchange='', list_status='L',
+                       fields='ts_code,symbol,name,area,industry,fullname,enname,market,exchange,curr_type,list_status,list_date,delist_date,is_hs')
+
+dataset = np.array(data)
+stock_list = dataset.tolist()
+print(stock_list)
 
 #sql = "select cal_date from trade_cal where cal_date ='" + str(sys.argv[1]) + "' and is_open=1 order by cal_date"
-sql = "select cal_date from trade_cal where cal_date ='" + str('20211112') + "' and is_open=1 order by cal_date"
-cursor.execute(sql)
-print("cursor.excute:", cursor.rowcount)
-for each in cursor.fetchall():
-    print(datetime.datetime.strftime(each[0], "%Y%m%d"))
-    data = pro.daily(trade_date=datetime.datetime.strftime(each[0], "%Y%m%d"))
-    cursor = db.cursor()
-    datalist = np.array(data).tolist()
-    #sql = "insert into stock_daily( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
-    sql = "insert into stock_daily_find( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount, vol_925_ratio) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
-    print(sql)
-    for data in datalist:
-        if ( (float(data[5]) - float(data[2])) / float(data[2]) >0.09 ) :
-            #print(data)
-            stock_code = data[0][0:6]
-            parket_code = 1 if data[0][7:9]=='SH' else 0
-            print(parket_code, stock_code)
-            info = api.get_security_quotes( (parket_code, stock_code))
-            print(info[0]['reversed_bytes3'])
-            datalist.append(str(info[0]['reversed_bytes3']))
-            try:
-                # 执行sql语句
-                cursor.execute(sql, datalist)
-                # 提交到数据库执行
-                db.commit()
-            except Exception as e:
-                print(e)
-                # 如果发生错误则回滚
-                db.rollback()
+#sql = "select cal_date from trade_cal where cal_date ='" + str('20211112') + "' and is_open=1 order by cal_date"
+
+print("stock_list len= ", stock_list.__len__())
+
+# for each in stock_list:
+#print(datetime.datetime.strftime('20211112', "%Y%m%d"))
+data = pro.daily(trade_date='20211112')
+cursor = db.cursor()
+datalist = np.array(data).tolist()
+#sql = "insert into stock_daily( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
+sql = "insert into stock_daily_find( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount,vol_925_ratio) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
+
+print(datalist.__len__())
+info = api.get_security_quotes( (0, 300473))
+print(info)
+
+for data in datalist:
+    if len(data) < 6 or float(data[2])==0:
+        continue
+    if ( (float(data[5]) - float(data[2])) / float(data[2]) >0.09 ) :
+        #print(data)
+        stock_code = data[0][0:6]
+        parket_code = 1 if data[0][7:9]=='SH' else 0
+        print(parket_code, stock_code)
+        if data[0].__len__() < 6:
+            continue
+        info = api.get_security_quotes( (parket_code, stock_code))
+        print(info[0]['reversed_bytes3'])
+        data.append(str(float(info[0]['reversed_bytes3']) / float(data[9])))
+        try:
+            # 执行sql语句
+            cursor.execute(sql, data)
+            # 提交到数据库执行
+            db.commit()
+        except Exception as e:
+            print(e)
+            # 如果发生错误则回滚
+            db.rollback()
       
 
 
