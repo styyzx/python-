@@ -43,9 +43,10 @@ def get_data_func():
         url = ('http://hq.sinajs.cn/list=' + name)
         resp = requests.get(url)  # 获取数据
         get_data = resp.text.split(',')  # 数据分解成list
+        print(get_data)
         #data_list = [get_data[1], get_data[2], get_data[3], get_data[4], get_data[8]]  # 选取需要的数据
         #data_flist = list(map(float, get_data))  # 字符串转换成浮点数据
-        data_df.append(get_data)  # 将选取的数据列表逐个存入DataFrame
+        #data_df.append(get_data)  # 将选取的数据列表逐个存入DataFrame
 
     return (data_df)
 
