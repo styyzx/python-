@@ -37,17 +37,17 @@ cursor.close()
 
 
 # 查询当前所有正常上市交易的股票列表
-data = pro.stock_basic(exchange='', list_status='L',
-                       fields='ts_code,symbol,name,area,industry,fullname,enname,market,exchange,curr_type,list_status,list_date,delist_date,is_hs')
+# data = pro.stock_basic(exchange='', list_status='L',
+#                        fields='ts_code,symbol,name,area,industry,fullname,enname,market,exchange,curr_type,list_status,list_date,delist_date,is_hs')
 
-dataset = np.array(data)
-stock_list = dataset.tolist()
-print(stock_list)
+# dataset = np.array(data)
+# stock_list = dataset.tolist()
+#print(stock_list)
 
 #sql = "select cal_date from trade_cal where cal_date ='" + str(sys.argv[1]) + "' and is_open=1 order by cal_date"
 #sql = "select cal_date from trade_cal where cal_date ='" + str('20211112') + "' and is_open=1 order by cal_date"
 
-print("stock_list len= ", stock_list.__len__())
+# print("stock_list len= ", stock_list.__len__())
 
 # for each in stock_list:
 #print(datetime.datetime.strftime('20211112', "%Y%m%d"))
@@ -55,12 +55,12 @@ data = pro.daily(trade_date='20211116')
 cursor = db.cursor()
 datalist = np.array(data).tolist()
 #sql = "insert into stock_daily( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
-sql = "insert into stock_daily_find( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount,vol_925_ratio) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
-sql2 = "insert into tdx_daily( code, `price`, last_close,`open`, high, low, servertime, vol, `cur_vol`, reversed_bytes3,cur_time) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
+sql = "insert into stock_daily_find2( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount,vol_925,vol_925_ratio,cur_time) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
+#sql2 = "insert into tdx_daily( code, `price`, last_close,`open`, high, low, servertime, vol, `cur_vol`, reversed_bytes3,cur_time) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
 
 print(datalist.__len__())
-info = api.get_security_quotes( (0, 300473))
-print(info)
+# info = api.get_security_quotes( (0, 300473))
+# print(info)
 
 for data in datalist:
     if len(data) < 6 or float(data[2])==0:
@@ -74,24 +74,26 @@ for data in datalist:
             continue
         info = api.get_security_quotes( (parket_code, stock_code))
 
-        data.append(str(float(info[0]['reversed_bytes3']) / float(data[9])))
-        tdx_data = []
-        tdx_data.append(info[0]['code'])
-        tdx_data.append(info[0]['price'])
-        tdx_data.append(info[0]['last_close'])
-        tdx_data.append(info[0]['open'])
-        tdx_data.append(info[0]['high'])
-        tdx_data.append(info[0]['low'])
-        tdx_data.append(info[0]['servertime'])
-        tdx_data.append(info[0]['vol'])
-        tdx_data.append(info[0]['cur_vol'])
-        tdx_data.append(info[0]['reversed_bytes3'])
-        tdx_data.append(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-        print(tdx_data)
+        data.append(str(float(info[0]['reversed_bytes3']) ))
+        data.append(str(float(info[0]['reversed_bytes3']) / ( float(data[10]) * 10 ) ))
+        data.append(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        # tdx_data = []
+        # tdx_data.append(info[0]['code'])
+        # tdx_data.append(info[0]['price'])
+        # tdx_data.append(info[0]['last_close'])
+        # tdx_data.append(info[0]['open'])
+        # tdx_data.append(info[0]['high'])
+        # tdx_data.append(info[0]['low'])
+        # tdx_data.append(info[0]['servertime'])
+        # tdx_data.append(info[0]['vol'])
+        # tdx_data.append(info[0]['cur_vol'])
+        # tdx_data.append(info[0]['reversed_bytes3'])
+        # tdx_data.append(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        # print(tdx_data)
         try:
             # 执行sql语句
             cursor.execute(sql, data)
-            cursor.execute(sql2, tdx_data)
+            # cursor.execute(sql2, tdx_data)
             # 提交到数据库执行
             db.commit()
         except Exception as e:
@@ -103,13 +105,3 @@ for data in datalist:
 
 
 api.disconnect()
-
-    # try:
-    #     # 执行sql语句
-    #     cursor.executemany(sql, datalist)
-    #     # 提交到数据库执行
-    #     db.commit()
-    # except Exception as e:
-    #     print(e)
-    #     # 如果发生错误则回滚
-    #     db.rollback()
