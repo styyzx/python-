@@ -38,9 +38,9 @@ print(stock_code_list.__len__())
 
 def get_data_func():
     #data_df = pd.DataFrame(index=['Time', 'Open', 'High', 'Low', 'Price'])
-    data_df = []
+    #data_df = []
     for name in stock_code_list:
-        url = ('http://hq.sinajs.cn/list=' + name)
+        url = ('http://hq.sinajs.cn/list=' + name[7:9].lower()+name[:6])
         resp = requests.get(url)  # 获取数据
         get_data = resp.text.split(',')  # 数据分解成list
         print(get_data)
@@ -48,7 +48,7 @@ def get_data_func():
         #data_flist = list(map(float, get_data))  # 字符串转换成浮点数据
         #data_df.append(get_data)  # 将选取的数据列表逐个存入DataFrame
 
-    return (data_df)
+    #return (data_df)
 
 
 g = get_data_func()

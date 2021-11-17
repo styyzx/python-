@@ -115,7 +115,7 @@ execute_sql_str(daily_sql)
 
 # for each in stock_list:
 # print(datetime.datetime.strftime('20211112', "%Y%m%d"))
-data = pro.daily(trade_date='20211116')
+data = pro.daily(trade_date='20211117')
 cursor = db.cursor()
 datalist = np.array(data).tolist()
 
@@ -129,6 +129,15 @@ print(datalist.__len__())
 # info = api.get_security_quotes( (0, 300473))
 # print(info)
 
+import requests
+def get_sina_func(name):
+
+        url = ('http://hq.sinajs.cn/list=' + name[7:9].lower() + name[:6])
+        resp = requests.get(url)  # 获取数据
+        get_data = resp.text.split(',')  # 数据分解成list
+        print(get_data)
+        return get_data
+
 for data in datalist:
     if len(data) < 6 or float(data[2]) == 0:
         continue
@@ -137,7 +146,7 @@ for data in datalist:
         stock_code = data[0][0:6]
         parket_code = 1 if data[0][7:9] == 'SH' else 0
         print(parket_code, stock_code)
-        if data[0].__len__() < 8 or data[0][0] == '3' or data[0][0] == '8':
+        if data[0].__len__() < 8 or data[0][0] == '3' or data[0][0] == '8' or data[0][:3] == '688':
             continue
         info = api.get_security_quotes((parket_code, stock_code))
 
