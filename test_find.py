@@ -120,7 +120,7 @@ cursor = db.cursor()
 datalist = np.array(data).tolist()
 
 #sql = "insert into stock_daily( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
-insert_sql = "insert into " + daily_tab_name + "( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, " \
+insert_sql = "replace into " + daily_tab_name + "( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, " \
                                         "pct_chg, vol, amount,vol_925,vol_925_ratio) values ( %s,%s,%s,%s," \
                                         "%s,%s,%s,%s,%s,%s,%s,%s,%s ) "
 #sql2 = "insert into tdx_daily( code, `price`, last_close,`open`, high, low, servertime, vol, `cur_vol`, reversed_bytes3,cur_time) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
@@ -129,14 +129,15 @@ print(datalist.__len__())
 # info = api.get_security_quotes( (0, 300473))
 # print(info)
 
-import requests
-def get_sina_func(name):
+# 获取新浪数据
+# import requests
+# def get_sina_func(name):
 
-        url = ('http://hq.sinajs.cn/list=' + name[7:9].lower() + name[:6])
-        resp = requests.get(url)  # 获取数据
-        get_data = resp.text.split(',')  # 数据分解成list
-        print(get_data)
-        return get_data
+#         url = ('http://hq.sinajs.cn/list=' + name[7:9].lower() + name[:6])
+#         resp = requests.get(url)  # 获取数据
+#         get_data = resp.text.split(',')  # 数据分解成list
+#         print(get_data)
+#         return get_data
 
 for data in datalist:
     if len(data) < 6 or float(data[2]) == 0:
