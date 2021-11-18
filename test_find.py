@@ -7,33 +7,27 @@ import datetime
 import time
 import pandas as pd
 import sys
+# 通达信接口
+from pytdx.hq import TdxHq_API
+api = TdxHq_API()
 
+# tushare接口
 ts.set_token('b072d98ad9c6b41cb816bee74cc36646a0a0fbd5fb404b5c58b04e70')
 pro = ts.pro_api()
 
-from pytdx.hq import TdxHq_API
-
-api = TdxHq_API()
 b_con = 0
 if api.connect('119.147.212.81', 7709):
     b_con = 1
 
+# 数据库连接
 db = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456', db='tushare', charset='utf8mb4')
 
-# 使用cursor()方法获取操作游标
-cursor = db.cursor()
-sql = "delete from stock_daily_find"
-try:
-    # 执行sql语句
-    cursor.execute(sql)
-    # 提交到数据库执行
-    db.commit()
-except Exception as e:
-    print(e)
-    # 如果发生错误则回滚
-    db.rollback()
-# 关闭游标
-cursor.close()
+import datetime
+def getYesterday():
+    today=datetime.date.today()
+    oneday=datetime.timedelta(days=1)
+    yesterday=today-oneday
+    return yesterday
 
 
 def execute_sql_str(sql_str):
@@ -115,7 +109,7 @@ execute_sql_str(daily_sql)
 
 # for each in stock_list:
 # print(datetime.datetime.strftime('20211112', "%Y%m%d"))
-data = pro.daily(trade_date='20211117')
+data = pro.daily(trade_date=getYesterday().strftime("%Y%m%d"))
 cursor = db.cursor()
 datalist = np.array(data).tolist()
 
@@ -129,16 +123,6 @@ print(datalist.__len__())
 # info = api.get_security_quotes( (0, 300473))
 # print(info)
 
-# 获取新浪数据
-# import requests
-# def get_sina_func(name):
-
-#         url = ('http://hq.sinajs.cn/list=' + name[7:9].lower() + name[:6])
-#         resp = requests.get(url)  # 获取数据
-#         get_data = resp.text.split(',')  # 数据分解成list
-#         print(get_data)
-#         return get_data
-
 for data in datalist:
     if len(data) < 6 or float(data[2]) == 0:
         continue
@@ -146,7 +130,7 @@ for data in datalist:
         # print(data)
         stock_code = data[0][0:6]
         parket_code = 1 if data[0][7:9] == 'SH' else 0
-        print(parket_code, stock_code)
+        #print(parket_code, stock_code)
         if data[0].__len__() < 8 or data[0][0] == '3' or data[0][0] == '8' or data[0][:3] == '688':
             continue
         info = api.get_security_quotes((parket_code, stock_code))
@@ -156,17 +140,6 @@ for data in datalist:
         #data.append(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         # tdx_data = []
         # tdx_data.append(info[0]['code'])
-        # tdx_data.append(info[0]['price'])
-        # tdx_data.append(info[0]['last_close'])
-        # tdx_data.append(info[0]['open'])
-        # tdx_data.append(info[0]['high'])
-        # tdx_data.append(info[0]['low'])
-        # tdx_data.append(info[0]['servertime'])
-        # tdx_data.append(info[0]['vol'])
-        # tdx_data.append(info[0]['cur_vol'])
-        # tdx_data.append(info[0]['reversed_bytes3'])
-        # tdx_data.append(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-        # print(tdx_data)
         try:
             # 执行sql语句
             cursor.execute(insert_sql, data)
@@ -177,6 +150,23 @@ for data in datalist:
             print(e)
             # 如果发生错误则回滚
             db.rollback()
+cursor.close()
+
+
+def execute_query(sql_str):
+    temp_cursor = db.cursor()
+    temp_cursor.execute(sql_str)
+    print("查询到行数:", temp_cursor.rowcount)
+
+    for each in temp_cursor.fetchall():
+        print(each)
+    temp_cursor.close()
+
+
+sql = "select ts_code,pct_chg,vol_925,vol_925_ratio from " + daily_tab_name + " where vol_925_ratio > 0.01 order by " \
+      "vol_925_ratio desc "
+execute_query(sql)
+
 
 api.disconnect()
 
