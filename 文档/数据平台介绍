@@ -1,0 +1,25 @@
+
+- vnpy官方只提供了米筐的借口，据说数据质量很高。
+- 米筐/聚宽
+- 万矿-wind旗下的量化平台
+- tushare
+- quantopian
+  + 国外的一个量化平台，提供美股和期货的数据，并且有自己开源的框架zipline,在github上比backtrader的排名还高，但是，要想在中国市场上使用，需要做一定的改进。据说，聚宽，米筐这些平台，都是参考zipline的框架，开发的，他们的api都挺像的。
+- 掘金量化
+- 东方财富网
+- 优矿-通联数据
+
+FMZ发明者量化交易平台：原来的BotVs，地址www.fmz.com
+Bigquant: https://bigquant.com/
+掘金：https://www.myquant.cn/
+优矿：https://uqer.io/v3/community/list
+万矿：http://windquant.com/
+聚宽：https://www.joinquant.com
+米筐：http://www.ricequant.com
+真格量化：https://quant.pobo.net.cn/forum-portal/
+镭矿：http://www.raquant.com/
+量化云：https://www.1quant.com/
+点宽：https://www.digquant.com.cn/
+
+天勤量化主页：https://www.shinnytech.com/tianqin/
+
