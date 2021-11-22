@@ -23,11 +23,19 @@ if api.connect('119.147.212.81', 7709):
 db = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456', db='tushare', charset='utf8mb4')
 
 import datetime
-def getYesterday():
-    today=datetime.date.today()
-    oneday=datetime.timedelta(days=1)
-    yesterday=today-oneday
+import chinese_calendar
+
+def getYesterday(today):
+    oneday = datetime.timedelta(days=1)
+    yesterday = today - oneday
     return yesterday
+
+def getLastWorkDay(today):
+    yesterday = getYesterday(today)
+    while chinese_calendar.is_workday(yesterday) == False:
+        yesterday = getYesterday(yesterday)
+    return yesterday
+
 
 
 def execute_sql_str(sql_str):
@@ -78,6 +86,7 @@ daily_sql = 'CREATE TABLE `' + daily_tab_name + '''` (
   `high` double DEFAULT NULL COMMENT '最高价',
   `low` double DEFAULT NULL COMMENT '最低价',
   `close` double DEFAULT NULL COMMENT '收盘价',
+  `cur_pct_chg` double DEFAULT NULL COMMENT 'jrzf',
   `pre_close` double DEFAULT NULL COMMENT '昨日收盘价',
   `change` double DEFAULT NULL COMMENT '涨跌额',
   `pct_chg` double DEFAULT NULL COMMENT '涨跌幅',
@@ -109,15 +118,16 @@ execute_sql_str(daily_sql)
 
 # for each in stock_list:
 # print(datetime.datetime.strftime('20211112', "%Y%m%d"))
-data = pro.daily(trade_date=getYesterday().strftime("%Y%m%d"))
+
+today = datetime.date.today()
+data = pro.daily(trade_date=getLastWorkDay(today).strftime("%Y%m%d"))
+#data = pro.daily(trade_date='20211119')
 cursor = db.cursor()
 datalist = np.array(data).tolist()
 
-#sql = "insert into stock_daily( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, pct_chg, vol, amount) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
 insert_sql = "replace into " + daily_tab_name + "( ts_code, trade_date, `open`, high, low, `close`, pre_close, `change`, " \
-                                        "pct_chg, vol, amount,vol_925,vol_925_ratio) values ( %s,%s,%s,%s," \
-                                        "%s,%s,%s,%s,%s,%s,%s,%s,%s ) "
-#sql2 = "insert into tdx_daily( code, `price`, last_close,`open`, high, low, servertime, vol, `cur_vol`, reversed_bytes3,cur_time) values ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s )"
+                                        "pct_chg, vol, amount,vol_925,vol_925_ratio,cur_pct_chg) values ( %s,%s,%s,%s," \
+                                        "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s ) "
 
 print(datalist.__len__())
 # info = api.get_security_quotes( (0, 300473))
@@ -126,17 +136,22 @@ print(datalist.__len__())
 for data in datalist:
     if len(data) < 6 or float(data[2]) == 0:
         continue
-    if ((float(data[5]) - float(data[2])) / float(data[2]) > 0.09):
+    if (float(data[8]) > 9):
         # print(data)
         stock_code = data[0][0:6]
         parket_code = 1 if data[0][7:9] == 'SH' else 0
-        #print(parket_code, stock_code)
+        print(parket_code, stock_code)
         if data[0].__len__() < 8 or data[0][0] == '3' or data[0][0] == '8' or data[0][:3] == '688':
             continue
         info = api.get_security_quotes((parket_code, stock_code))
-
+        if info is None:
+            print(parket_code, stock_code)
+            continue
         data.append(str(float(info[0]['reversed_bytes3']) ))
-        data.append(str(float(info[0]['reversed_bytes3']) / ( float(data[10]) * 10 ) ))
+        vol925_ratio = float(info[0]['reversed_bytes3']) / ( float(data[10]) * 10 )
+        data.append(str( vol925_ratio*100 ))
+        cur_pct_chg = (float(info[0]['price']) - float(info[0]['last_close'])) / ( float(info[0]['last_close']) )
+        data.append(str( cur_pct_chg*100 ))
         #data.append(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         # tdx_data = []
         # tdx_data.append(info[0]['code'])
@@ -163,7 +178,7 @@ def execute_query(sql_str):
     temp_cursor.close()
 
 
-sql = "select ts_code,pct_chg,vol_925,vol_925_ratio from " + daily_tab_name + " where vol_925_ratio > 0.01 order by " \
+sql = "select ts_code,cur_pct_chg,vol_925,vol_925_ratio from " + daily_tab_name + " where vol_925_ratio > 5 order by " \
       "vol_925_ratio desc "
 execute_query(sql)
 

@@ -15,6 +15,10 @@ db = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456', 
 db1 = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456', db='tushare', charset='utf8mb4')
 cursor = db1.cursor()
 
+df = pro.daily(ts_code='000628.SZ', start_date='20211119', end_date='20211119')
+print(df)
+
+
 #sql = "select cal_date from trade_cal where cal_date ='" + str(sys.argv[1]) + "' and is_open=1 order by cal_date"
 sql = "select cal_date from trade_cal where cal_date ='" + str('20211111') + "' and is_open=1 order by cal_date"
 cursor.execute(sql)
