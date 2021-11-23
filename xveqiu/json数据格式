@@ -1,0 +1,18 @@
+-- 获取股票数据
+-  网址 https://xueqiu.com/service/v5/stock/screener/quote/list?page=1&size=30&order=desc&orderby=percent&order_by=percent&market=CN&type=sh_sz&_=1637706477151
+-  数据格式
+# {"symbol":"SZ300907","net_profit_cagr":-10.661971807548875,"north_net_inflow":null,"ps":2.5521,"type":11,"percent":20.02,
+#  "has_follow":false,"tick_size":0.01,"pb_ttm":4.1588,"float_shares":36960000,"current":30.52,"amplitude":0,"pcf":null,
+#  "current_year_percent":-15.61,"float_market_capital":1128019200,"north_net_inflow_time":null,"market_capital":2929920000,
+#  "dividend_yield":1.638,"lot_size":100,"roe_ttm":8.038239079855867,"total_percent":-49.88,"percent5m":0,
+#  "income_cagr":30.214231650680468,"amount":97405587.16,"chg":5.09,"issue_date_ts":1605628800000,"eps":0.49,
+#  "main_net_inflows":-72218683,"volume":3191533,"volume_ratio":2.35,"pb":4.021,"followers":2268,"turnover_rate":8.64,
+#  "first_percent":319.65,"name":"康平科技","pe_ttm":62.232,"total_shares":96000000,"limitup_days":1}
+
+-- 获取可转债债券数据
+- 网址： https://xueqiu.com/stock/cata/stocklist.json?page='+str(i)+'&size=30&order=desc&orderby=percent&type=11%2C12&_=1522591974896
+- 返回数据：
+{"count":{"count":5687},"success":"true",
+  "stocks":[{"symbol":"SZ000673","code":"000673","name":"当代东方","current":"5.13","percent":"10.09","change":"0.47",
+  "high":"5.13","low":"4.58","high52w":"5.97","low52w":"2.63","marketcapital":"4.06065376746E9","amount":"4.51903229E8",
+  "type":"11","pettm":"22.79","volume":"92230235","hasexist":"false"},。。。
